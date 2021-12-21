@@ -1,0 +1,60 @@
+name: trino-python-client release
+
+on:
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.9.5"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{env.PYTHON_VERSION}}
+
+      - name: Test release
+        run: |
+          python3 -m venv .venv
+          . .venv/bin/activate
+          pip install .
+          pip install twine wheel setuptools
+          ./setup.py sdist bdist_wheel
+          pip install dist/trino-*.tar.gz
+          pip install dist/trino-*-py3-none-any.whl
+          twine check dist/trino-*-py3-none-any.whl dist/trino-*.tar.gz
+
+  pypi-release:
+    name: PyPI release
+    runs-on: ubuntu-latest
+    environment: TrinoPyPIProd
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{env.PYTHON_VERSION}}
+
+      - name: Get trino-python-client version
+        run: |
+          pip install setuptools
+          echo "VERSION_NUMBER=$(./setup.py --version)" >> $GITHUB_ENV
+
+      - name: Release to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          python3 -m venv .venv
+          . .venv/bin/activate
+          pip install .
+          pip install twine wheel setuptools
+          ./setup.py sdist bdist_wheel
+          twine upload --non-interactive dist/trino-${{env.VERSION_NUMBER}}-py3-none-any.whl dist/trino-${{env.VERSION_NUMBER}}.tar.gz
