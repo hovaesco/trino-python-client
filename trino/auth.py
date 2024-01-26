@@ -247,6 +247,7 @@ class _OAuth2KeyRingTokenCache(_OAuth2TokenCache):
             logger.info("keyring module not found. OAuth2 token will not be stored in keyring.")
 
     def is_keyring_available(self) -> bool:
+        print(self._keyring.get_keyring())
         return self._keyring is not None \
             and not isinstance(self._keyring.get_keyring(), self._keyring.backends.fail.Keyring)
 
@@ -404,7 +405,7 @@ class _OAuth2TokenBearer(AuthBase):
 
     @staticmethod
     def _determine_user(headers: Mapping[Any, Any]) -> Optional[Any]:
-        return headers.get(HEADER_USER)
+        return headers.get(HEADER_USER, "user")
 
     @staticmethod
     def _construct_cache_key(host: Optional[str], user: Optional[str]) -> str:
