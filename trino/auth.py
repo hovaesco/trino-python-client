@@ -251,6 +251,9 @@ class _OAuth2KeyRingTokenCache(_OAuth2TokenCache):
         return self._keyring is not None \
             and not isinstance(self._keyring.get_keyring(), self._keyring.backends.fail.Keyring)
 
+    def get_keyring(self):  # type: ignore
+        return self._keyring.get_keyring()
+
     def get_token_from_cache(self, key: Optional[str]) -> Optional[str]:
         try:
             return self._keyring.get_password(key, "token")
